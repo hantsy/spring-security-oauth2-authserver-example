@@ -53,7 +53,7 @@ fun main(args: Array<String>) {
 }
 
 @Configuration(proxyBeanMethods = false)
-@EnableWebSecurity
+@EnableWebSecurity // disable spring boot autoconfig for security
 class SecurityConfig {
 
     @Bean
@@ -133,8 +133,8 @@ class SecurityConfig {
         val rsaKey = RSAKey.Builder(publicKey)
             .privateKey(privateKey)
             .keyID(UUID.randomUUID().toString())
-            .build();
-        val jwkSet = JWKSet(rsaKey);
+            .build()
+        val jwkSet = JWKSet(rsaKey)
         return ImmutableJWKSet(jwkSet)
     }
 
@@ -152,7 +152,7 @@ class SecurityConfig {
 
     @Bean
     fun jwtDecoder(jwkSource: JWKSource<SecurityContext>): JwtDecoder {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource)
     }
 
     @Bean
@@ -166,9 +166,9 @@ class SecurityConfig {
             if (OAuth2TokenType.ACCESS_TOKEN == context.tokenType) {
                 context.claims
                     .claims { claims ->
-                        val authentiocation = context.getPrincipal<Authentication>()
+                        val authentication = context.getPrincipal<Authentication>()
                         val roles = AuthorityUtils
-                            .authorityListToSet(authentiocation.authorities)
+                            .authorityListToSet(authentication.authorities)
                             .stream()
                             .map { it.replaceFirst("^ROLE_".toRegex(), "") }
                             .toList()
@@ -178,17 +178,20 @@ class SecurityConfig {
                         claims["aud"] = context.registeredClient.clientSettings.settings["aud"] as String
 
                         // add user info field to access token
-                        val userInfo: OidcUserInfo = userInfoService.loadUser(authentiocation.name)
+                        val userInfo: OidcUserInfo = userInfoService.loadUser(authentication.name)
                         claims["dob"] = userInfo.claims["dob"]
                     }
 
-//                if (OidcParameterNames.ID_TOKEN == context.tokenType.value) {
-//                    val userInfo: OidcUserInfo = userInfoService.loadUser(
-//                        context.getPrincipal().getName()
-//                    )
-//                    context.claims.claims { claims -> claims.putAll(userInfo.claims.) }
-//                }
+
             }
+
+            // add custom user attribute to id_token
+//            if (OidcParameterNames.ID_TOKEN == context.tokenType.value) {
+//                val userInfo: OidcUserInfo = userInfoService.loadUser(
+//                    context.getPrincipal().getName()
+//                )
+//                context.claims.claims { claims -> claims.putAll(userInfo.claims.) }
+//            }
         }
     }
 
@@ -240,7 +243,7 @@ class OidcUserInfoService {
                     "address",
                     mapOf("formatted" to "Champ de Mars\n5 Av. Anatole France\n75007 Paris\nFrance")
                 )
-                // add custom attributes
+                // add custom attribute, dob - Date of Birth
                 .claim("dob", "1990-12-31")
                 .updatedAt("1970-01-01T00:00:00Z")
                 .build()
