@@ -31,7 +31,7 @@ dependencies {
 		exclude(module = "android-json")
 	}
 	testImplementation("io.mockk:mockk:1.13.16")
-	testImplementation("com.ninja-squad:springmockk:4.0.2")
+	testImplementation("com.ninja-squad:springmockk:5.0.1")
 	testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
 	testImplementation("io.kotest:kotest-framework-concurrency:5.9.1")
 
